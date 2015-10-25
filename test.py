@@ -84,3 +84,16 @@ nameFrameDF = frame[["name", "year", "count"]].groupby(["year", "name"]).sum().r
 nameFrameDF = pd.merge(nameFrameDF, yearTotalDF, left_on = "year", right_on = "year", how = "inner")
 nameFrameDF["pctFreq"] = nameFrameDF["count_x"]/nameFrameDF["count_y"]*100
 
+def get_pctIncrease(df, start_year, end_year):
+    df1 = df[df["year"]==start_year][["name", "pctFreq"]]
+    df2 = df[df["year"]==end_year][["name", "pctFreq"]]
+    df3 = pd.merge(df1, df2, left_on = "name", right_on = "name", how = "left").fillna(value = 0)
+    df3["increase"] = (df3["pctFreq_y"] / df3["pctFreq_x"] - 1) * 100
+    return df3
+
+diff = get_pctIncrease(nameFrameDF, 1980, 2014)
+
+print diff.sort(["increase"],ascending=[False]).head()
+print diff[diff["increase"] < 0].sort(["increase", "pctFreq_x"],ascending=[True, False]).head()
+print diff[(diff["increase"] < 0) & (diff["increase"] > -100)].sort(["increase", "pctFreq_x"],ascending=[True, False]).head()
+
