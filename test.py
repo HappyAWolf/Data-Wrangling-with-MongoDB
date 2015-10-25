@@ -25,14 +25,47 @@ print frame.shape
 frame.columns = ['state', 'gender', 'year', 'name', 'count']
 frame.describe
 
-#import numpy as np
+
+#1. Something about the data
+
 year_count = frame[["year", "count"]].groupby('year')['count'].sum()
-#name_count.sort(["count"], ascending = [False])
-print type(year_count)
-print year_count.index, year_count.values
 
-
-year_count.describe
-#import matplotlib.pyplot as plt
+year_count.describe()
+import matplotlib.pyplot as plt
 plt.plot(year_count.index, year_count.values)
+plt.show()
+
+
+#2. Most popular name of all time, of either gender
+
+nameFrame = frame[["name","gender","count"]]
+
+nf1 = nameFrame.groupby(["gender", "name"])["count"].sum()
+
+print nf1["F"].argmax(), nf1["F"][nf1["F"].argmax()]
+print nf1["M"].argmax(), nf1["M"][nf1["M"].argmax()]
+print nf1.argmax(), nf1[nf1.argmax()]
+
+
+
+#3. Most gender ambiguous name in 2013, 1945
+name1945 = frame[frame.year==1945][["gender", "name", "count"]].groupby(["gender", "name"]).sum().reset_index()
+name2013 = frame[frame.year==2013][["gender", "name", "count"]].groupby(["gender", "name"]).sum().reset_index()
+#print name1945.shape
+#print name1945.describe()
+#print name2013.shape
+#print name2013.describe()
+
+def get_overlap(df):
+    df_f = df[df.gender == 'F'][["name", "count"]]
+    df_m = df[df.gender == 'M'][["name", "count"]]
+    df_o = pd.merge(df_f, df_m, left_on = "name", right_on = "name", how = "inner")
+    df_o["total"] = df_o["count_x"] + df_o["count_y"]
+    df_o["diff"] = abs(df_o["count_x"] - df_o["count_y"]) / (df_o["count_x"] + df_o["count_y"])
+    return df_o
+name2013_o = get_overlap(name2013)
+name1945_o = get_overlap(name1945)
+
+import matplotlib.pyplot as plt
+name2013_o.plot(kind='scatter', x='diff', y='total')
 plt.show()
