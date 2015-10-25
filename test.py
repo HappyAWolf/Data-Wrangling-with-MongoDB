@@ -30,3 +30,9 @@ year_count = frame[["year", "count"]].groupby('year')['count'].sum()
 #name_count.sort(["count"], ascending = [False])
 print type(year_count)
 print year_count.index, year_count.values
+
+
+year_count.describe
+#import matplotlib.pyplot as plt
+plt.plot(year_count.index, year_count.values)
+plt.show()
