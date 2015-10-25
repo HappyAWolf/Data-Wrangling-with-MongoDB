@@ -69,3 +69,18 @@ name1945_o = get_overlap(name1945)
 import matplotlib.pyplot as plt
 name2013_o.plot(kind='scatter', x='diff', y='total')
 plt.show()
+
+print name1945_o[name1945_o["diff"] < 0.8].sort(["total"],ascending=[False]).head()
+print name2013_o[name2013_o["diff"] < 0.8].sort(["total"],ascending=[False]).head()
+
+
+# 4. Percentage Increase
+
+# total number of names per year
+yearTotalDF = frame[["year", "count"]].groupby(["year"]).sum().reset_index()
+# total number of counts per name per year
+nameFrameDF = frame[["name", "year", "count"]].groupby(["year", "name"]).sum().reset_index()
+# Get the percentages for each name per year
+nameFrameDF = pd.merge(nameFrameDF, yearTotalDF, left_on = "year", right_on = "year", how = "inner")
+nameFrameDF["pctFreq"] = nameFrameDF["count_x"]/nameFrameDF["count_y"]*100
+
