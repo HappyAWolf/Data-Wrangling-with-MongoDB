@@ -23,8 +23,11 @@ frame = pd.concat(list_)
 print frame.shape
 
 frame.columns = ['state', 'gender', 'year', 'name', 'count']
-frame.describe
 
+print frame.describe()
+print pd.isnull(frame).any()
+
+# Part A) Descriptive Analysis
 
 #1. Something about the data
 
@@ -70,8 +73,8 @@ import matplotlib.pyplot as plt
 name2013_o.plot(kind='scatter', x='diff', y='total')
 plt.show()
 
-print name1945_o[name1945_o["diff"] < 0.8].sort(["total"],ascending=[False]).head()
-print name2013_o[name2013_o["diff"] < 0.8].sort(["total"],ascending=[False]).head()
+print name1945_o[name1945_o["diff"] < 0.25].sort(["total"],ascending=[False]).head()
+print name2013_o[name2013_o["diff"] < 0.25].sort(["total"],ascending=[False]).head()
 
 
 # 4. Percentage Increase
@@ -87,13 +90,69 @@ nameFrameDF["pctFreq"] = nameFrameDF["count_x"]/nameFrameDF["count_y"]*100
 def get_pctIncrease(df, start_year, end_year):
     df1 = df[df["year"]==start_year][["name", "pctFreq"]]
     df2 = df[df["year"]==end_year][["name", "pctFreq"]]
-    df3 = pd.merge(df1, df2, left_on = "name", right_on = "name", how = "left").fillna(value = 0)
+    df3 = pd.merge(df1, df2, left_on = "name", right_on = "name", how = "inner").fillna(value = 0)
     df3["increase"] = (df3["pctFreq_y"] / df3["pctFreq_x"] - 1) * 100
     return df3
 
 diff = get_pctIncrease(nameFrameDF, 1980, 2014)
 
-print diff.sort(["increase"],ascending=[False]).head()
-print diff[diff["increase"] < 0].sort(["increase", "pctFreq_x"],ascending=[True, False]).head()
-print diff[(diff["increase"] < 0) & (diff["increase"] > -100)].sort(["increase", "pctFreq_x"],ascending=[True, False]).head()
+print diff.sort(["increase"],ascending=[False]).head(1)
+print diff.sort(["increase"],ascending=[True]).head(1)
+
+
+# 5. Even larger increase/decrease?
+
+def find_max_min(df, start_year, end_year):
+    increase = []
+    decrease = []
+    for j in range(start_year+1, end_year + 1):
+        diff = get_pctIncrease(df, start_year, j)
+        inc = diff.sort(["increase"],ascending=[False]).head(1).values
+        dec = diff.sort(["increase"],ascending=[True]).head(1).values
+        increase.append((j, inc[0, 0], inc[0, 1], inc[0, 2], inc[0, 3]))
+        decrease.append((j, dec[0, 0], dec[0, 1], dec[0, 2], dec[0, 3]))
+    max_inc = 0
+    max_ind = 0
+    min_inc = 0
+    min_ind = 0
+    for l in range(len(decrease)):
+        if min_inc >= decrease[l][4]:
+            min_inc = decrease[l][4]
+            min_ind = l
+        if max_inc <= increase[l][4]:
+            max_inc = increase[l][4]
+            max_ind = l
+    return (increase[max_ind], decrease[min_ind])
+
+find_max_min(nameFrameDF, 1980, 2014)
+
+
+def find_global_max_min(df, start_year, end_year):
+    max_list = []
+    min_list = []
+    max_inc = 0
+    min_inc = 0
+    max_ind = 0
+    min_ind = 0
+    for j in range(start_year, end_year):
+        find = find_max_min(df, j, end_year)
+        max_list.append((j, find[0]))
+        min_list.append((j, find[1]))
+    for l in range(len(max_list)):
+        if max_inc <= max_list[l][1][4]:
+            max_inc = max_list[l][1][4]
+            max_ind = l
+        if min_inc >= min_list[l][1][4]:
+            min_inc = min_list[l][1][4]
+            min_ind = l
+    return (max_list[max_ind], min_list[min_ind])
+
+find_global_max_min(nameFrameDF, 1910, 2014)
+
+
+# Part B) Insights
+
+
+
+
 
